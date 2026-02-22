@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการข่าวสาร - เทศบาลเมืองบางแม่นาง</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            padding-bottom: 50px;
+        }
+
+        .admin-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 16px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            transition: opacity 0.3s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-container">
+        <a href="index.html" class="back-link">← กลับไปหน้าแรก</a>
+
+        <div class="admin-header">
+            <h2>ระบบเพิ่มข่าวสาร (Admin)</h2>
+            <p>กรอกข้อมูลด้านล่างเพื่อเพิ่มข่าวใหม่ขึ้นสู่หน้าเว็บไซต์ทันที</p>
+        </div>
+
+        <form id="addNewsForm">
+            <div class="form-group">
+                <label for="title">หัวข้อข่าว *</label>
+                <input type="text" id="title" required placeholder="เช่น โครงการปรับปรุงภูมิทัศน์ชุมชนหมู่ 5">
+            </div>
+
+            <div class="form-group">
+                <label for="content">รายละเอียดข่าว *</label>
+                <textarea id="content" required placeholder="เนื้อหาประกาศ..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="date_str">วันที่แสดงผล (ไม่บังคับ)</label>
+                <input type="text" id="date_str" placeholder="เช่น 25 มีนาคม 2567 (ถ้าเว้นว่างจะใช้วันที่ปัจจุบัน)">
+            </div>
+
+            <div class="form-group">
+                <label for="image_url">ลิงก์รูปภาพ (ไม่บังคับ)</label>
+                <input type="text" id="image_url"
+                    placeholder="เช่น https://domain.com/image.jpg (ถ้าเว้นว่างจะใช้รูประบบ)">
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">บันทึกและเผยแพร่ข่าว</button>
+        </form>
+
+        <div id="alertBox" class="alert"></div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script>
+        document.getElementById('addNewsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('alertBox');
+
+            btn.textContent = 'กำลังบันทึก...';
+            btn.disabled = true;
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            let date_str = document.getElementById('date_str').value;
+            let image_url = document.getElementById('image_url').value;
+
+            if (!date_str) date_str = null;
+            if (!image_url) image_url = null;
+
+            try {
+                const { data, error } = await supabase
+                    .from('news')
+                    .insert([
+                        { title: title, content: content, date_str: date_str, image_url: image_url }
+                    ]);
+
+                if (error) {
+                    throw error;
+                }
+
+                alertBox.className = 'alert alert-success';
+                alertBox.textContent = 'บันทึกข่าวสารเรียบร้อยแล้ว! สามารถกลับไปดูที่หน้าแรกได้เลย';
+                alertBox.style.display = 'block';
+
+                // Reset form
+                document.getElementById('addNewsForm').reset();
+
+            } catch (error) {
+                console.error('Error inserting news:', error);
+                alertBox.className = 'alert alert-error';
+                alertBox.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
+                alertBox.style.display = 'block';
+            } finally {
+                btn.textContent = 'บันทึกและเผยแพร่ข่าว';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
