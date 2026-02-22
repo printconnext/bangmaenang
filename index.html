@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หมู่ 5 เทศบาลเมืองบางแม่นาง</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Header / Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-content">
+            <div class="logo-area">
+                <img src="logo.png" alt="โลโก้เทศบาล" class="logo-img">
+                <div class="logo-text">
+                    <h1>หมู่ 5 บางแม่นาง</h1>
+                    <p>เทศบาลเมืองบางแม่นาง</p>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home" class="active">หน้าแรก</a></li>
+                <li><a href="#news">ข่าวสาร/ประกาศ</a></li>
+                <li><a href="#activities">กิจกรรมชุมชน</a></li>
+                <li><a href="#services">บริการประชาชน</a></li>
+                <li><a href="#contact">ติดต่อเรา</a></li>
+            </ul>
+            <div class="mobile-menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="home">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <img src="logo.png" alt="โลโก้เทศบาล" class="hero-logo">
+            <span class="badge">เว็บไซต์อย่างเป็นทางการ</span>
+            <h2>ยินดีต้อนรับสู่</h2>
+            <h1 class="hero-title">หมู่ 5 บางแม่นาง</h1>
+            <p class="hero-subtitle">ชุมชนน่าอยู่ ควบคู่คุณธรรม นำการพัฒนา อย่างยั่งยืน</p>
+            <div class="hero-actions">
+                <a href="#news" class="btn btn-primary">ข่าวสารล่าสุด</a>
+                <a href="#contact" class="btn btn-outline">ติดต่อผู้นำชุมชน</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- News & Announcements (Inspired by category 103) -->
+    <section class="section" id="news">
+        <div class="container">
+            <div class="section-header">
+                <h2>ข่าวสาร และประกาศ</h2>
+                <p>อัปเดตข้อมูลข่าวสารล่าสุดจากหมู่ 5 และเทศบาลเมืองบางแม่นาง</p>
+            </div>
+
+            <div class="news-grid">
+                <!-- News Card 1 -->
+                <article class="news-card">
+                    <div class="news-img" style="background-image: url('news1.jpg')"></div>
+                    <div class="news-content">
+                        <span class="news-date"><i class="fa-regular fa-calendar-alt"></i> 10 มีนาคม 2567</span>
+                        <h3>โครงการปรับปรุงภูมิทัศน์ชุมชนหมู่ 5</h3>
+                        <p>ขอเชิญชวนลูกบ้านหมู่ 5 ร่วมกิจกรรมจิตอาสา
+                            ทำความสะอาดและปรับปรุงภูมิทัศน์บริเวณศาลาหมู่บ้าน...</p>
+                        <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </article>
+
+                <!-- News Card 2 -->
+                <article class="news-card">
+                    <div class="news-img" style="background-image: url('news2.jpg')"></div>
+                    <div class="news-content">
+                        <span class="news-date"><i class="fa-regular fa-calendar-alt"></i> 5 มีนาคม 2567</span>
+                        <h3>กำหนดการฉีดวัคซีนป้องกันพิษสุนัขบ้า</h3>
+                        <p>เทศบาลเมืองบางแม่นาง จะลงพื้นที่ให้บริการฉีดวัคซีนป้องกันโรคพิษสุนัขบ้าฟรี ณ จุดบริการหมู่
+                            5...</p>
+                        <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </article>
+
+                <!-- News Card 3 -->
+                <article class="news-card">
+                    <div class="news-img" style="background-image: url('news3.jpg')"></div>
+                    <div class="news-content">
+                        <span class="news-date"><i class="fa-regular fa-calendar-alt"></i> 1 มีนาคม 2567</span>
+                        <h3>ประกาศรับเบี้ยยังชีพผู้สูงอายุ</h3>
+                        <p>ประชาสัมพันธ์การลงทะเบียนรับเงินเบี้ยยังชีพผู้สูงอายุและผู้พิการ ประจำปีงบประมาณ 2568...</p>
+                        <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </article>
+            </div>
+            <div class="view-all-container">
+                <a href="#" class="btn btn-secondary">ดูข่าวสารทั้งหมด</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="section bg-light" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>บริการประชาชน</h2>
+                <p>ช่องทางดาวน์โหลดเอกสาร และบริการต่างๆ ที่เกี่ยวข้องกับหมู่บ้าน</p>
+            </div>
+
+            <div class="services-grid">
+                <div class="service-box">
+                    <div class="service-icon"><i class="fa-solid fa-file-contract"></i></div>
+                    <h3>แบบฟอร์มคำร้องทั่วไป</h3>
+                    <p>ดาวน์โหลดแบบฟอร์มเพื่อใช้ติดต่อธุระกับทางเทศบาลและผู้ใหญ่บ้าน</p>
+                </div>
+                <div class="service-box">
+                    <div class="service-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    <h3>ร้องทุกข์/เสนอแนะ</h3>
+                    <p>ช่องทางแจ้งปัญหาความเดือดร้อน เช่น ตะเกียงดับ ท่อตัน หรืออื่นๆ</p>
+                </div>
+                <div class="service-box">
+                    <div class="service-icon"><i class="fa-solid fa-house-chimney-medical"></i></div>
+                    <h3>ขออนุญาตก่อสร้าง</h3>
+                    <p>ข้อมูลและเอกสารที่ต้องใช้ในการขออนุญาตดัดแปลงและก่อสร้างอาคาร</p>
+                </div>
+                <div class="service-box">
+                    <div class="service-icon"><i class="fa-solid fa-users"></i></div>
+                    <h3>ขึ้นทะเบียนผู้สูงอายุ</h3>
+                    <p>ตรวจสอบสิทธิและขั้นตอนการรับเบี้ยยังชีพผู้สูงอายุ/ผู้พิการ</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container footer-content">
+            <div class="footer-info">
+                <div class="logo-area" style="color: white;">
+                    <img src="logo.png" alt="โลโก้เทศบาล" class="logo-img">
+                    <div class="logo-text">
+                        <h1 style="color:white; font-size:1.5rem;">หมู่ 5 บางแม่นาง</h1>
+                        <p style="color:#cbd5e1; font-size:0.9rem;">เทศบาลเมืองบางแม่นาง</p>
+                    </div>
+                </div>
+                <p class="footer-desc">เว็บไซต์เพื่อการประชาสัมพันธ์ ข้อมูลข่าวสาร และบริการประชาชน หมู่ 5 ตำบลบางแม่นาง
+                    อำเภอบางใหญ่ จังหวัดนนทบุรี</p>
+            </div>
+
+            <div class="footer-links">
+                <h3>ลิงก์ด่วน</h3>
+                <ul>
+                    <li><a href="#home">หน้าแรก</a></li>
+                    <li><a href="#news">ข่าวประชาสัมพันธ์</a></li>
+                    <li><a href="#services">ดาวน์โหลดเอกสาร</a></li>
+                    <li><a href="https://bangmaenang.go.th" target="_blank">เว็บเทศบาลเมืองบางแม่นาง</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-contact">
+                <h3>ติดต่อเรา</h3>
+                <ul>
+                    <li><i class="fa-solid fa-location-dot"></i> ที่ทำการผู้ใหญ่บ้าน หมู่ 5 ต.บางแม่นาง อ.บางใหญ่
+                        จ.นนทบุรี</li>
+                    <li><i class="fa-solid fa-phone"></i> 02-XXX-XXXX (ผู้ใหญ่บ้าน)</li>
+                    <li><i class="fa-brands fa-line"></i> LINE @moo5bangmaenang</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2024 หมู่ 5 เทศบาลเมืองบางแม่นาง. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
