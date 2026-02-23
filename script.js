@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('news')
                 .select('*')
                 .order('created_at', { ascending: false })
-                .limit(3);
+                .limit(6);
 
             if (error) {
                 console.error('Error fetching news:', error);
@@ -139,11 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Exception fetching news:', err);
-            newsContainer.innerHTML = '<p style="text-align:center; color:#ef4444; width:100%;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+            // Only show error in the container if it exists
+            if (newsContainer) {
+                newsContainer.innerHTML = '<p style="text-align:center; color:#ef4444; width:100%;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+            }
         }
     }
 
-    // Call the function to load news
-    fetchNews();
+    // Call the function to load news only if the container exists
+    if (document.getElementById('news-container')) {
+        fetchNews();
+    }
 
 });

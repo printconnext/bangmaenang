@@ -103,6 +103,37 @@
             text-decoration: underline;
         }
 
+        .media-preview-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .delete-media-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            line-height: 24px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            padding: 0;
+            z-index: 10;
+        }
+
+        .delete-media-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
         /* Login Overlay Styles */
         #loginOverlay {
             position: fixed;
@@ -192,8 +223,12 @@
                 <label for="image_upload">อัปโหลดรูปภาพหน้าปก (ไม่บังคับ - 1 รูป)</label>
                 <div id="currentCoverPreview" style="margin-bottom: 10px; display: none;">
                     <p style="font-size: 14px; color: #64748b; margin-bottom: 5px;">รูปหน้าปกปัจจุบัน:</p>
-                    <img id="currentCoverImg" src="" alt="Cover Preview"
-                        style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: cover;">
+                    <div class="media-preview-container">
+                        <img id="currentCoverImg" src="" alt="Cover Preview"
+                            style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: cover;">
+                        <button type="button" class="delete-media-btn" onclick="markCoverForDeletion()"
+                            title="ลบรูปหน้าปกเดิม">X</button>
+                    </div>
                 </div>
                 <input type="file" id="image_upload" accept="image/*">
                 <small style="color: #64748b; margin-top: 5px; display: block;">อัปโหลดไฟล์ใหม่เพื่อแทนที่รูปเดิม
@@ -217,8 +252,12 @@
                 <label for="video_upload">อัปโหลดวิดีโอ (ไม่บังคับ - 1 คลิป)</label>
                 <div id="currentVideoPreview" style="margin-bottom: 10px; display: none;">
                     <p style="font-size: 14px; color: #64748b; margin-bottom: 5px;">วิดีโอปัจจุบัน:</p>
-                    <video id="currentVideoPlayer" controls
-                        style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #e2e8f0;"></video>
+                    <div class="media-preview-container" style="display: block;">
+                        <video id="currentVideoPlayer" controls
+                            style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #e2e8f0;"></video>
+                        <button type="button" class="delete-media-btn" onclick="markVideoForDeletion()"
+                            title="ลบวิดีโอเดิม">X</button>
+                    </div>
                 </div>
                 <!-- Accept mp4, webm, and ogg, or general video -->
                 <input type="file" id="video_upload" accept="video/mp4,video/webm,video/ogg,video/*">
@@ -284,6 +323,11 @@
             loadAdminNews(); // Load news when panel is shown
         }
 
+        // State variables for tracking media deletion in edit mode
+        let removeCover = false;
+        let removeVideo = false;
+        let removedGalleryUrls = [];
+
         // Helper to reset form fully
         function resetAdminForm() {
             document.getElementById('addNewsForm').reset();
@@ -293,6 +337,11 @@
             btn.textContent = 'บันทึกและเผยแพร่ข่าว';
             btn.style.backgroundColor = 'var(--primary-color)';
 
+            // Reset delete state
+            removeCover = false;
+            removeVideo = false;
+            removedGalleryUrls = [];
+
             // Hide image previews
             document.getElementById('currentCoverPreview').style.display = 'none';
             document.getElementById('currentCoverImg').src = '';
@@ -300,6 +349,23 @@
             document.getElementById('currentGalleryContainer').innerHTML = '';
             document.getElementById('currentVideoPreview').style.display = 'none';
             document.getElementById('currentVideoPlayer').src = '';
+        }
+
+        // --- Media Deletion Handlers ---
+        window.markCoverForDeletion = function () {
+            removeCover = true;
+            document.getElementById('currentCoverPreview').style.display = 'none';
+        }
+
+        window.markVideoForDeletion = function () {
+            removeVideo = true;
+            document.getElementById('currentVideoPreview').style.display = 'none';
+            document.getElementById('currentVideoPlayer').src = '';
+        }
+
+        window.markGalleryItemForDeletion = function (url, index) {
+            removedGalleryUrls.push(url);
+            document.getElementById('gallery-item-' + index).style.display = 'none';
         }
 
         // --- Load News into Admin Table ---
@@ -358,6 +424,11 @@
                 document.getElementById('content').value = data.content;
                 document.getElementById('date_str').value = data.date_str || '';
 
+                // Reset delete state for new edit session
+                removeCover = false;
+                removeVideo = false;
+                removedGalleryUrls = [];
+
                 // Show cover preview if exists
                 if (data.image_url) {
                     document.getElementById('currentCoverPreview').style.display = 'block';
@@ -379,8 +450,13 @@
 
                     if (urls.length > 0) {
                         document.getElementById('currentGalleryPreview').style.display = 'block';
-                        urls.forEach(url => {
-                            galleryContainer.innerHTML += `<img src="${url}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">`;
+                        urls.forEach((url, i) => {
+                            galleryContainer.innerHTML += `
+                                <div class="media-preview-container" id="gallery-item-${i}">
+                                    <img src="${url}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
+                                    <button type="button" class="delete-media-btn" onclick="markGalleryItemForDeletion('${url}', ${i})" title="ลบรูปนี้">X</button>
+                                </div>
+                            `;
                         });
                     } else {
                         document.getElementById('currentGalleryPreview').style.display = 'none';
@@ -546,11 +622,51 @@
                 if (editId) {
                     btn.textContent = 'กำลังอัปเดตข้อมูล...';
 
-                    // Fetch existing data to preserve old URLs if no new ones are uploaded
+                    // Fetch existing data to preserve old URLs if no new ones are uploaded (and not marked for deletion)
                     const { data: existingData } = await supabaseClient.from('news').select('*').eq('id', editId).single();
-                    if (!imageFile && existingData) insertPayload.image_url = existingData.image_url;
-                    if (galleryFiles.length === 0 && existingData) insertPayload.gallery_urls = existingData.gallery_urls;
-                    if (!videoFile && existingData) insertPayload.video_url = existingData.video_url;
+
+                    if (existingData) {
+                        if (!imageFile) {
+                            insertPayload.image_url = removeCover ? null : existingData.image_url;
+                        }
+
+                        if (!videoFile) {
+                            insertPayload.video_url = removeVideo ? null : existingData.video_url;
+                        }
+
+                        if (galleryFiles.length === 0) {
+                            // If no new files uploaded, preserve old ones minus explicitly deleted ones
+                            if (existingData.gallery_urls) {
+                                let oldUrls = [];
+                                if (typeof existingData.gallery_urls === 'string') {
+                                    try { oldUrls = JSON.parse(existingData.gallery_urls); } catch (e) { }
+                                } else if (Array.isArray(existingData.gallery_urls)) {
+                                    oldUrls = existingData.gallery_urls;
+                                }
+
+                                const remainingUrls = oldUrls.filter(url => !removedGalleryUrls.includes(url));
+                                insertPayload.gallery_urls = remainingUrls.length > 0 ? remainingUrls : null;
+                            } else {
+                                insertPayload.gallery_urls = null;
+                            }
+                        } else {
+                            // If new files ARE uploaded, we APPEND them to the remaining old ones
+                            let remainingUrls = [];
+                            if (existingData.gallery_urls) {
+                                let oldUrls = [];
+                                if (typeof existingData.gallery_urls === 'string') {
+                                    try { oldUrls = JSON.parse(existingData.gallery_urls); } catch (e) { }
+                                } else if (Array.isArray(existingData.gallery_urls)) {
+                                    oldUrls = existingData.gallery_urls;
+                                }
+                                remainingUrls = oldUrls.filter(url => !removedGalleryUrls.includes(url));
+                            }
+
+                            // combine remaining old urls + new uploaded urls
+                            const combinedUrls = [...remainingUrls, ...insertPayload.gallery_urls];
+                            insertPayload.gallery_urls = combinedUrls.length > 0 ? combinedUrls : null;
+                        }
+                    }
 
                     const { error } = await supabaseClient
                         .from('news')
