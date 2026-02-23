@@ -102,12 +102,66 @@
         .back-link:hover {
             text-decoration: underline;
         }
+
+        /* Login Overlay Styles */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="admin-container">
+    <!-- Login Overlay -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2>เว็บไซต์หมู่ 5 บางแม่นาง</h2>
+            <p style="margin-bottom: 20px; color: #64748b;">กรุณาเข้าสู่ระบบเพื่อจัดการข่าวสาร</p>
+            <form id="loginForm">
+                <div class="form-group" style="text-align: left;">
+                    <label for="username">ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group" style="text-align: left;">
+                    <label for="password">รหัสผ่าน (Password)</label>
+                    <input type="password" id="password" required
+                        style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 16px;">
+                </div>
+                <div id="loginError" class="alert alert-error"
+                    style="display:none; padding:10px; margin-bottom:15px; margin-top:0;">
+                    ชื่อผู้ใช้ หรือ รหัสผ่านไม่ถูกต้อง
+                </div>
+                <button type="submit" class="submit-btn">เข้าสู่ระบบ (Login)</button>
+                <a href="index.html" class="back-link" style="margin-top: 15px; margin-bottom: 0;">← กลับไปหน้าแรก</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-container" id="adminPanel" style="display: none;">
         <a href="index.html" class="back-link">← กลับไปหน้าแรก</a>
 
         <div class="admin-header">
@@ -147,6 +201,32 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
+        // --- Login Logic ---
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('loginError');
+
+            if (user === 'admin' && pass === 'admin123') {
+                // Success
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                // Optional: Save to sessionStorage briefly so they don't have to log in on every refresh
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+            } else {
+                // Error
+                errorMsg.style.display = 'block';
+            }
+        });
+
+        // Check if already logged in this session
+        if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        // --- Add News Logic ---
         document.getElementById('addNewsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
