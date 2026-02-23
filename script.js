@@ -128,8 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="news-date"><i class="fa-regular fa-calendar-alt"></i> ${dateDisplay}</span>
                         <h3>${item.title || 'ไม่มีหัวข้อ'}</h3>
                         <p>${item.content || ''}</p>
-                        <!-- For a real app, href could link to a dedicated news page with the item ID -->
-                        <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></a>
+                        <!-- Link to a dedicated news page with the item ID -->
+                        <a href="news-detail.html?id=${item.id}" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
                 </article>
                 `;

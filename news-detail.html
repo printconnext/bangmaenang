@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดข่าว - เทศบาลเมืองบางแม่นาง</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+
+        .article-container {
+            max-width: 800px;
+            margin: 100px auto 50px;
+            /* Leave space for fixed navbar */
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .article-header-img {
+            width: 100%;
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            background-color: #e2e8f0;
+        }
+
+        .article-content-wrapper {
+            padding: 40px;
+        }
+
+        .article-title {
+            font-size: 28px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .article-meta {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .article-body {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #334155;
+            white-space: pre-wrap;
+            /* To preserve line breaks from textarea */
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 50px;
+            color: #64748b;
+        }
+
+        @media (max-width: 768px) {
+            .article-header-img {
+                height: 250px;
+            }
+
+            .article-content-wrapper {
+                padding: 20px;
+            }
+
+            .article-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header / Navigation (Simplified) -->
+    <nav class="navbar scrolled" id="navbar">
+        <div class="container nav-content">
+            <div class="logo-area">
+                <img src="logo.png" alt="โลโก้เทศบาล" class="logo-img">
+                <div class="logo-text">
+                    <h1>หมู่ 5 บางแม่นาง</h1>
+                    <p>เทศบาลเมืองบางแม่นาง</p>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">หน้าแรก</a></li>
+                <li><a href="index.html#news">ข่าวสาร/ประกาศ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="article-container" id="article-container">
+            <div class="loading-state">
+                <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                <p style="margin-top: 15px;">กำลังโหลดข้อมูลข่าวสาร...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="padding: 40px 0 20px;">
+        <div class="footer-bottom">
+            <p>&copy; 2024 หมูที่ 5 เทศบาลเมืองบางแม่นาง สงวนลิขสิทธิ์ทั้งหมด</p>
+        </div>
+    </footer>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js?v=2"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('article-container');
+
+            // 1. Get ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+
+            if (!articleId) {
+                container.innerHTML = `
+                    <div class="article-content-wrapper" style="text-align:center;">
+                        <h2>ไม่พบข้อมูลข่าวสารที่คุณต้องการ</h2>
+                        <a href="index.html" class="back-link" style="margin-top:20px;">← กลับไปหน้าแรก</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // 2. Fetch specific article from Supabase
+                const { data, error } = await supabaseClient
+                    .from('news')
+                    .select('*')
+                    .eq('id', articleId)
+                    .single(); // Get exactly one row
+
+                if (error || !data) {
+                    console.error("Error fetching article:", error);
+                    container.innerHTML = `
+                        <div class="article-content-wrapper" style="text-align:center; padding: 50px;">
+                            <h3 style="color:#ef4444;">ขออภัย, ไม่สามารถดึงข้อมูลข่าวสารได้</h3>
+                            <p style="color:#64748b; margin-top:10px;">ข่าวนี้อาจถูกลบไปแล้ว หรือมีปัญหาในการเชื่อมต่อ</p>
+                            <a href="index.html" class="btn btn-primary" style="margin-top:20px; display:inline-block;">กลับหน้าแรก</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 3. Render Article
+                const bgImage = data.image_url ? data.image_url : 'news1.jpg'; // Fallback
+                const dateDisplay = data.date_str || new Date(data.created_at).toLocaleDateString('th-TH');
+
+                container.innerHTML = `
+                    <div class="article-header-img" style="background-image: url('${bgImage}')"></div>
+                    <div class="article-content-wrapper">
+                        <a href="index.html#news" class="back-link">← กลับไปหน้ารวมข่าวสาร</a>
+                        
+                        <h1 class="article-title">${data.title}</h1>
+                        
+                        <div class="article-meta">
+                            <span><i class="fa-regular fa-calendar-alt"></i> ลงวันที่: ${dateDisplay}</span>
+                        </div>
+                        
+                        <!-- Use white-space: pre-wrap in CSS to preserve line breaks -->
+                        <div class="article-body">${data.content}</div>
+                    </div>
+                `;
+
+                // Update page title
+                document.title = data.title + " - ข่าวสารเทศบาลเมืองบางแม่นาง";
+
+            } catch (err) {
+                console.error("Exception:", err);
+                container.innerHTML = `
+                    <div class="article-content-wrapper" style="text-align:center;">
+                        <h3 style="color:#ef4444;">เกิดข้อผิดพลาดของระบบ</h3>
+                        <a href="index.html" class="back-link" style="margin-top:20px;">← กลับไปหน้าแรก</a>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+
+</html>
