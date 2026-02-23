@@ -140,13 +140,13 @@
                         const dateDisplay = item.date_str || new Date(item.created_at).toLocaleDateString('th-TH');
 
                         html += `
-                        <article class="news-card">
+                        <article class="news-card" style="cursor: pointer;" onclick="window.location.href='news-detail.html?id=${item.id}'">
                             <div class="news-img" style="background-image: url('${bgImage}')"></div>
                             <div class="news-content">
                                 <span class="news-date"><i class="fa-regular fa-calendar-alt"></i> ${dateDisplay}</span>
                                 <h3>${item.title || 'ไม่มีหัวข้อ'}</h3>
                                 <p>${item.content.substring(0, 100)}...</p>
-                                <a href="news-detail.html?id=${item.id}" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></a>
+                                <span class="read-more" style="color: var(--primary-color); font-weight: 500; display: inline-flex; align-items: center; gap: 5px;">อ่านต่อ <i class="fa-solid fa-arrow-right"></i></span>
                             </div>
                         </article>
                         `;
