@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจัดการข่าวสาร - เทศบาลเมืองบางแม่นาง</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
@@ -276,6 +277,8 @@
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
                         <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                            <th style="padding: 12px; border: 1px solid #e2e8f0; width: 80px; text-align: center;">
+                                รูปภาพ</th>
                             <th style="padding: 12px; border: 1px solid #e2e8f0;">หัวข้อข่าว</th>
                             <th style="padding: 12px; border: 1px solid #e2e8f0; width: 150px;">วันที่ลง</th>
                             <th style="padding: 12px; border: 1px solid #e2e8f0; width: 120px;">จัดการ</th>
@@ -284,7 +287,7 @@
                     <tbody id="adminNewsTableBody">
                         <!-- News rows will be injected here -->
                         <tr>
-                            <td colspan="3" style="text-align:center; padding: 20px;">กำลังโหลด...</td>
+                            <td colspan="4" style="text-align:center; padding: 20px;">กำลังโหลด...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -381,15 +384,26 @@
                 if (error) throw error;
 
                 if (!newsItems || newsItems.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: #64748b;">ยังไม่มีข้อมูลข่าวสาร</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #64748b;">ยังไม่มีข้อมูลข่าวสาร</td></tr>';
                     return;
                 }
 
                 let html = '';
                 newsItems.forEach(item => {
                     const dateDisplay = item.date_str || new Date(item.created_at).toLocaleDateString('th-TH');
+
+                    let thumbHtml = '';
+                    if (item.image_url) {
+                        thumbHtml = `<img src="${item.image_url}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">`;
+                    } else if (item.video_url) {
+                        thumbHtml = `<div style="width: 60px; height: 40px; background: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #64748b;" title="มีวิดีโอ"><i class="fa-solid fa-play"></i></div>`;
+                    } else {
+                        thumbHtml = `<div style="width: 60px; height: 40px; background: #f1f5f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #cbd5e1;" title="ไม่มีรูปภาพ"><i class="fa-regular fa-image"></i></div>`;
+                    }
+
                     html += `
                         <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;">${thumbHtml}</td>
                             <td style="padding: 12px; border: 1px solid #e2e8f0;">${item.title || 'ไม่มีหัวข้อ'}</td>
                             <td style="padding: 12px; border: 1px solid #e2e8f0;">${dateDisplay}</td>
                             <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;">
@@ -403,7 +417,7 @@
 
             } catch (err) {
                 console.error('Error loading news:', err);
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: #ef4444;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #ef4444;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
             }
         }
 
