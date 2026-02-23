@@ -186,10 +186,18 @@
             </div>
 
             <div class="form-group">
-                <label for="image_upload">อัปโหลดรูปภาพหน้าปก (ไม่บังคับ)</label>
+                <label for="image_upload">อัปโหลดรูปภาพหน้าปก (ไม่บังคับ - 1 รูป)</label>
                 <input type="file" id="image_upload" accept="image/*">
-                <small style="color: #64748b; margin-top: 5px; display: block;">ลากไฟล์มาวางหรือคลิกเพื่อเลือกไฟล์
+                <small
+                    style="color: #64748b; margin-top: 5px; display: block;">ลากไฟล์มาวางหรือคลิกเพื่อเลือกไฟล์สำหรับหน้าปกข่าว
                     (รองรับ .jpg, .png)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="gallery_upload">อัปโหลดรูปประกอบเนื้อหาข่าว (Gallery) (ไม่บังคับ - หลายรูป)</label>
+                <input type="file" id="gallery_upload" accept="image/*" multiple>
+                <small style="color: #64748b; margin-top: 5px; display: block;">ลากไฟล์มาวางหรือคลิกเพื่อเลือกไฟล์
+                    (สามารถเลือกพร้อมกันได้หลายรูป)</small>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">บันทึกและเผยแพร่ข่าว</button>
@@ -242,26 +250,28 @@
             let date_str = document.getElementById('date_str').value;
 
             const imageFile = document.getElementById('image_upload').files[0];
+            const galleryFiles = document.getElementById('gallery_upload').files;
+
             let image_url = null;
+            let gallery_urls = [];
 
             if (!date_str) date_str = null;
 
             try {
-                // 1. Upload Image (If selected)
+                // 1. Upload Cover Image (If selected)
                 if (imageFile) {
-                    btn.textContent = 'กำลังอัปโหลดรูปภาพ...';
+                    btn.textContent = 'กำลังอัปโหลดรูปหน้าปก...';
                     const fileExt = imageFile.name.split('.').pop();
-                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+                    const fileName = `${Date.now()}_cover_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
                     const { data: uploadData, error: uploadError } = await supabaseClient.storage
                         .from('news-images')
                         .upload(fileName, imageFile);
 
                     if (uploadError) {
-                        throw new Error('อัปโหลดรูปไม่สำเร็จ: ' + uploadError.message);
+                        throw new Error('อัปโหลดรูปหน้าปกไม่สำเร็จ: ' + uploadError.message);
                     }
 
-                    // Get Public URL
                     const { data: publicUrlData } = supabaseClient.storage
                         .from('news-images')
                         .getPublicUrl(fileName);
@@ -269,13 +279,49 @@
                     image_url = publicUrlData.publicUrl;
                 }
 
-                // 2. Insert into Database
-                btn.textContent = 'กำลังบันทึกข้อมูล...';
+                // 2. Upload Gallery Images (If selected)
+                if (galleryFiles && galleryFiles.length > 0) {
+                    for (let i = 0; i < galleryFiles.length; i++) {
+                        const gFile = galleryFiles[i];
+                        btn.textContent = `กำลังอัปโหลดรูปประกอบ (${i + 1}/${galleryFiles.length})...`;
+
+                        const fileExt = gFile.name.split('.').pop();
+                        const fileName = `${Date.now()}_gallery_${i}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
+                        const { error: uploadError } = await supabaseClient.storage
+                            .from('news-images')
+                            .upload(fileName, gFile);
+
+                        if (uploadError) {
+                            throw new Error(`อัปโหลดรูปประกอบที่ ${i + 1} ไม่สำเร็จ: ` + uploadError.message);
+                        }
+
+                        const { data: publicUrlData } = supabaseClient.storage
+                            .from('news-images')
+                            .getPublicUrl(fileName);
+
+                        gallery_urls.push(publicUrlData.publicUrl);
+                    }
+                }
+
+                // 3. Prepare payload for Insertion
+                const insertPayload = {
+                    title: title,
+                    content: content,
+                    date_str: date_str,
+                    image_url: image_url
+                };
+
+                if (gallery_urls.length > 0) {
+                    // Supabase JS allows inserting objects/arrays directly into JSONB columns natively.
+                    insertPayload.gallery_urls = gallery_urls;
+                }
+
+                // 4. Insert into Database
+                btn.textContent = 'กำลังบันทึกข้อมูลข่าวสาร...';
                 const { data, error } = await supabaseClient
                     .from('news')
-                    .insert([
-                        { title: title, content: content, date_str: date_str, image_url: image_url }
-                    ]);
+                    .insert([insertPayload]);
 
                 if (error) {
                     throw error;

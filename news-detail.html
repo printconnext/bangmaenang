@@ -59,6 +59,30 @@
             color: #334155;
             white-space: pre-wrap;
             /* To preserve line breaks from textarea */
+            margin-bottom: 40px;
+        }
+
+        .article-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 30px;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .gallery-img:hover {
+            transform: scale(1.03);
         }
 
         .back-link {
@@ -178,6 +202,31 @@
                 const bgImage = data.image_url ? data.image_url : 'news1.jpg'; // Fallback
                 const dateDisplay = data.date_str || new Date(data.created_at).toLocaleDateString('th-TH');
 
+                // Render Gallery if exists
+                let galleryHtml = '';
+                if (data.gallery_urls) {
+                    let urls = [];
+                    // Handle both JSONB (already parsed) and Text (needs parsing)
+                    if (typeof data.gallery_urls === 'string') {
+                        try {
+                            urls = JSON.parse(data.gallery_urls);
+                        } catch (e) {
+                            console.error("Error parsing gallery URLs", e);
+                        }
+                    } else if (Array.isArray(data.gallery_urls)) {
+                        urls = data.gallery_urls;
+                    }
+
+                    if (urls.length > 0) {
+                        galleryHtml = '<div class="article-gallery">';
+                        urls.forEach(url => {
+                            // Link wrapping the image opens it in a new tab for a simple lightbox-like experience
+                            galleryHtml += `<a href="${url}" target="_blank"><img src="${url}" class="gallery-img" alt="รูปประกอบข่าว"></a>`;
+                        });
+                        galleryHtml += '</div>';
+                    }
+                }
+
                 container.innerHTML = `
                     <div class="article-header-img" style="background-image: url('${bgImage}')"></div>
                     <div class="article-content-wrapper">
@@ -191,6 +240,8 @@
                         
                         <!-- Use white-space: pre-wrap in CSS to preserve line breaks -->
                         <div class="article-body">${data.content}</div>
+                        
+                        ${galleryHtml}
                     </div>
                 `;
 
