@@ -186,9 +186,10 @@
             </div>
 
             <div class="form-group">
-                <label for="image_url">ลิงก์รูปภาพ (ไม่บังคับ)</label>
-                <input type="text" id="image_url"
-                    placeholder="เช่น https://domain.com/image.jpg (ถ้าเว้นว่างจะใช้รูประบบ)">
+                <label for="image_upload">อัปโหลดรูปภาพหน้าปก (ไม่บังคับ)</label>
+                <input type="file" id="image_upload" accept="image/*">
+                <small style="color: #64748b; margin-top: 5px; display: block;">ลากไฟล์มาวางหรือคลิกเพื่อเลือกไฟล์
+                    (รองรับ .jpg, .png)</small>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">บันทึกและเผยแพร่ข่าว</button>
@@ -239,12 +240,37 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
             let date_str = document.getElementById('date_str').value;
-            let image_url = document.getElementById('image_url').value;
+
+            const imageFile = document.getElementById('image_upload').files[0];
+            let image_url = null;
 
             if (!date_str) date_str = null;
-            if (!image_url) image_url = null;
 
             try {
+                // 1. Upload Image (If selected)
+                if (imageFile) {
+                    btn.textContent = 'กำลังอัปโหลดรูปภาพ...';
+                    const fileExt = imageFile.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('news-images')
+                        .upload(fileName, imageFile);
+
+                    if (uploadError) {
+                        throw new Error('อัปโหลดรูปไม่สำเร็จ: ' + uploadError.message);
+                    }
+
+                    // Get Public URL
+                    const { data: publicUrlData } = supabase.storage
+                        .from('news-images')
+                        .getPublicUrl(fileName);
+
+                    image_url = publicUrlData.publicUrl;
+                }
+
+                // 2. Insert into Database
+                btn.textContent = 'กำลังบันทึกข้อมูล...';
                 const { data, error } = await supabase
                     .from('news')
                     .insert([
