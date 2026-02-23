@@ -190,17 +190,27 @@
 
             <div class="form-group">
                 <label for="image_upload">อัปโหลดรูปภาพหน้าปก (ไม่บังคับ - 1 รูป)</label>
+                <div id="currentCoverPreview" style="margin-bottom: 10px; display: none;">
+                    <p style="font-size: 14px; color: #64748b; margin-bottom: 5px;">รูปหน้าปกปัจจุบัน:</p>
+                    <img id="currentCoverImg" src="" alt="Cover Preview"
+                        style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: cover;">
+                </div>
                 <input type="file" id="image_upload" accept="image/*">
-                <small
-                    style="color: #64748b; margin-top: 5px; display: block;">ลากไฟล์มาวางหรือคลิกเพื่อเลือกไฟล์สำหรับหน้าปกข่าว
-                    (รองรับ .jpg, .png)</small>
+                <small style="color: #64748b; margin-top: 5px; display: block;">อัปโหลดไฟล์ใหม่เพื่อแทนที่รูปเดิม
+                    หรือปล่อยว่างไว้เพื่อใช้รูปเดิม (รองรับ .jpg, .png)</small>
             </div>
 
             <div class="form-group">
                 <label for="gallery_upload">อัปโหลดรูปประกอบเนื้อหาข่าว (Gallery) (ไม่บังคับ - หลายรูป)</label>
+                <div id="currentGalleryPreview" style="margin-bottom: 10px; display: none;">
+                    <p style="font-size: 14px; color: #64748b; margin-bottom: 5px;">รูปประกอบปัจจุบัน:</p>
+                    <div id="currentGalleryContainer" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <!-- Gallery images injected here -->
+                    </div>
+                </div>
                 <input type="file" id="gallery_upload" accept="image/*" multiple>
-                <small style="color: #64748b; margin-top: 5px; display: block;">ลากไฟล์มาวางหรือคลิกเพื่อเลือกไฟล์
-                    (สามารถเลือกพร้อมกันได้หลายรูป)</small>
+                <small style="color: #64748b; margin-top: 5px; display: block;">ถ้าเลือกไฟล์ใหม่
+                    ระบบจะนำไปบวกเพิ่มหรือแทนที่ ขึ้นอยู่กับการจัดการ (ตอนนี้จะทำงานแบบเพิ่ม/แทนที่ทับของเดิม)</small>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">บันทึกและเผยแพร่ข่าว</button>
@@ -261,6 +271,22 @@
             loadAdminNews(); // Load news when panel is shown
         }
 
+        // Helper to reset form fully
+        function resetAdminForm() {
+            document.getElementById('addNewsForm').reset();
+            document.getElementById('editArticleId').value = '';
+
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = 'บันทึกและเผยแพร่ข่าว';
+            btn.style.backgroundColor = 'var(--primary-color)';
+
+            // Hide image previews
+            document.getElementById('currentCoverPreview').style.display = 'none';
+            document.getElementById('currentCoverImg').src = '';
+            document.getElementById('currentGalleryPreview').style.display = 'none';
+            document.getElementById('currentGalleryContainer').innerHTML = '';
+        }
+
         // --- Load News into Admin Table ---
         async function loadAdminNews() {
             const tbody = document.getElementById('adminNewsTableBody');
@@ -316,6 +342,37 @@
                 document.getElementById('title').value = data.title;
                 document.getElementById('content').value = data.content;
                 document.getElementById('date_str').value = data.date_str || '';
+
+                // Show cover preview if exists
+                if (data.image_url) {
+                    document.getElementById('currentCoverPreview').style.display = 'block';
+                    document.getElementById('currentCoverImg').src = data.image_url;
+                } else {
+                    document.getElementById('currentCoverPreview').style.display = 'none';
+                }
+
+                // Show gallery preview if exists
+                const galleryContainer = document.getElementById('currentGalleryContainer');
+                galleryContainer.innerHTML = '';
+                if (data.gallery_urls) {
+                    let urls = [];
+                    if (typeof data.gallery_urls === 'string') {
+                        try { urls = JSON.parse(data.gallery_urls); } catch (e) { }
+                    } else if (Array.isArray(data.gallery_urls)) {
+                        urls = data.gallery_urls;
+                    }
+
+                    if (urls.length > 0) {
+                        document.getElementById('currentGalleryPreview').style.display = 'block';
+                        urls.forEach(url => {
+                            galleryContainer.innerHTML += `<img src="${url}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">`;
+                        });
+                    } else {
+                        document.getElementById('currentGalleryPreview').style.display = 'none';
+                    }
+                } else {
+                    document.getElementById('currentGalleryPreview').style.display = 'none';
+                }
 
                 // Change UI
                 document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูลข่าวสาร';
@@ -468,10 +525,7 @@
                 alertBox.style.display = 'block';
 
                 // Reset form & UI state
-                document.getElementById('addNewsForm').reset();
-                document.getElementById('editArticleId').value = '';
-                btn.textContent = 'บันทึกและเผยแพร่ข่าว';
-                btn.style.backgroundColor = 'var(--primary-color)';
+                resetAdminForm();
 
                 // Refresh table
                 loadAdminNews();
