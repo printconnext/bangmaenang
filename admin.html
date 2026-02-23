@@ -170,6 +170,9 @@
         </div>
 
         <form id="addNewsForm">
+            <!-- Hidden field for keeping track of the article being edited -->
+            <input type="hidden" id="editArticleId" value="">
+
             <div class="form-group">
                 <label for="title">หัวข้อข่าว *</label>
                 <input type="text" id="title" required placeholder="เช่น โครงการปรับปรุงภูมิทัศน์ชุมชนหมู่ 5">
@@ -204,6 +207,27 @@
         </form>
 
         <div id="alertBox" class="alert"></div>
+
+        <div style="margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 30px;">
+            <h3>รายการข่าวสารทั้งหมด</h3>
+            <div style="overflow-x: auto; margin-top: 15px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                            <th style="padding: 12px; border: 1px solid #e2e8f0;">หัวข้อข่าว</th>
+                            <th style="padding: 12px; border: 1px solid #e2e8f0; width: 150px;">วันที่ลง</th>
+                            <th style="padding: 12px; border: 1px solid #e2e8f0; width: 120px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminNewsTableBody">
+                        <!-- News rows will be injected here -->
+                        <tr>
+                            <td colspan="3" style="text-align:center; padding: 20px;">กำลังโหลด...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- Supabase CDN -->
@@ -221,6 +245,7 @@
                 // Success
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
+                loadAdminNews();
                 // Optional: Save to sessionStorage briefly so they don't have to log in on every refresh
                 sessionStorage.setItem('isAdminLoggedIn', 'true');
             } else {
@@ -233,14 +258,110 @@
         if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
+            loadAdminNews(); // Load news when panel is shown
         }
 
-        // --- Add News Logic ---
+        // --- Load News into Admin Table ---
+        async function loadAdminNews() {
+            const tbody = document.getElementById('adminNewsTableBody');
+
+            try {
+                const { data: newsItems, error } = await supabaseClient
+                    .from('news')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!newsItems || newsItems.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: #64748b;">ยังไม่มีข้อมูลข่าวสาร</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                newsItems.forEach(item => {
+                    const dateDisplay = item.date_str || new Date(item.created_at).toLocaleDateString('th-TH');
+                    html += `
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 12px; border: 1px solid #e2e8f0;">${item.title || 'ไม่มีหัวข้อ'}</td>
+                            <td style="padding: 12px; border: 1px solid #e2e8f0;">${dateDisplay}</td>
+                            <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                                <button onclick="editArticle('${item.id}')" style="background:#f59e0b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-right:5px; font-family:'Kanit';">แก้ไข</button>
+                                <button onclick="deleteArticle('${item.id}')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-family:'Kanit';">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+
+            } catch (err) {
+                console.error('Error loading news:', err);
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: #ef4444;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            }
+        }
+
+        // --- Edit Article ---
+        window.editArticle = async function (id) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('news')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                // Populate form
+                document.getElementById('editArticleId').value = data.id;
+                document.getElementById('title').value = data.title;
+                document.getElementById('content').value = data.content;
+                document.getElementById('date_str').value = data.date_str || '';
+
+                // Change UI
+                document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูลข่าวสาร';
+                document.getElementById('submitBtn').style.backgroundColor = '#f59e0b';
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                console.error("Error fetching article for edit:", err);
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูลข่าวสาร");
+            }
+        };
+
+        // --- Delete Article ---
+        window.deleteArticle = async function (id) {
+            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข่าวสารนี้? (การลบจะไม่สามารถกู้คืนได้)')) {
+                return;
+            }
+
+            try {
+                // Note: We are deleting the row. Ideally, we should also delete associated images from storage.
+                // For simplicity now, we just delete the database row.
+                const { error } = await supabaseClient
+                    .from('news')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert("ลบข่าวสารเรียบร้อยแล้ว");
+                loadAdminNews(); // Refresh table
+
+            } catch (err) {
+                console.error("Error deleting article:", err);
+                alert("เกิดข้อผิดพลาดในการลบข่าวสาร: " + err.message);
+            }
+        };
+
+        // --- Add/Update News Logic ---
         document.getElementById('addNewsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const btn = document.getElementById('submitBtn');
             const alertBox = document.getElementById('alertBox');
+            const editId = document.getElementById('editArticleId').value;
 
             btn.textContent = 'กำลังบันทึก...';
             btn.disabled = true;
@@ -317,30 +438,53 @@
                     insertPayload.gallery_urls = gallery_urls;
                 }
 
-                // 4. Insert into Database
-                btn.textContent = 'กำลังบันทึกข้อมูลข่าวสาร...';
-                const { data, error } = await supabaseClient
-                    .from('news')
-                    .insert([insertPayload]);
+                // 4. Insert or Update Database
+                if (editId) {
+                    btn.textContent = 'กำลังอัปเดตข้อมูล...';
 
-                if (error) {
-                    throw error;
+                    // Fetch existing data to preserve old URLs if no new ones are uploaded
+                    const { data: existingData } = await supabaseClient.from('news').select('*').eq('id', editId).single();
+                    if (!imageFile && existingData) insertPayload.image_url = existingData.image_url;
+                    if (galleryFiles.length === 0 && existingData) insertPayload.gallery_urls = existingData.gallery_urls;
+
+                    const { error } = await supabaseClient
+                        .from('news')
+                        .update(insertPayload)
+                        .eq('id', editId);
+
+                    if (error) throw error;
+                    alertBox.textContent = 'อัปเดตข่าวสารเรียบร้อยแล้ว!';
+                } else {
+                    btn.textContent = 'กำลังบันทึกข้อมูลใหม่...';
+                    const { error } = await supabaseClient
+                        .from('news')
+                        .insert([insertPayload]);
+
+                    if (error) throw error;
+                    alertBox.textContent = 'บันทึกข่าวใหม่เรียบร้อยแล้ว!';
                 }
 
                 alertBox.className = 'alert alert-success';
-                alertBox.textContent = 'บันทึกข่าวสารเรียบร้อยแล้ว! สามารถกลับไปดูที่หน้าแรกได้เลย';
                 alertBox.style.display = 'block';
 
-                // Reset form
+                // Reset form & UI state
                 document.getElementById('addNewsForm').reset();
+                document.getElementById('editArticleId').value = '';
+                btn.textContent = 'บันทึกและเผยแพร่ข่าว';
+                btn.style.backgroundColor = 'var(--primary-color)';
+
+                // Refresh table
+                loadAdminNews();
 
             } catch (error) {
-                console.error('Error inserting news:', error);
+                console.error('Error handling news:', error);
                 alertBox.className = 'alert alert-error';
                 alertBox.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
                 alertBox.style.display = 'block';
+
+                // Restore button state
+                btn.textContent = editId ? 'อัปเดตข้อมูลข่าวสาร' : 'บันทึกและเผยแพร่ข่าว';
             } finally {
-                btn.textContent = 'บันทึกและเผยแพร่ข่าว';
                 btn.disabled = false;
             }
         });
