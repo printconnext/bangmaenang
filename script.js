@@ -90,12 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Fetch News from Supabase
     async function fetchNews() {
         const newsContainer = document.getElementById('news-container');
-        if (!newsContainer || typeof supabase === 'undefined') return;
+        if (!newsContainer || typeof supabaseClient === 'undefined') return;
 
         try {
             // Fetch latest 3 news items ordered by created_at descending
             // Make sure you have created a table named 'news' in Supabase
-            const { data: newsItems, error } = await supabase
+            const { data: newsItems, error } = await supabaseClient
                 .from('news')
                 .select('*')
                 .order('created_at', { ascending: false })
